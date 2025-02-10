@@ -1,3 +1,6 @@
+/**
+ * @module MSW tools for servicing files from archive files.
+ */
 import { getResponse, tarballUriToToFileMap } from "./mod.ts";
 
 interface IMSW {

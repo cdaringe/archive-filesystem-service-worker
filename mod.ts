@@ -1,3 +1,6 @@
+/**
+ * @module Capabilities to support streaming archives and building filemaps.
+ */
 import { entries as tarEntries } from "@zeb/streaming-tar";
 import { contentType } from "@std/media-types";
 
