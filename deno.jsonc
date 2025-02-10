@@ -1,6 +1,6 @@
 {
   "name": "@cdaringe/archive-filesystem-service-worker",
-  "version": "0.1.1",
+  "version": "0.1.3",
   "license": "MIT",
   "imports": {
     "@geacko/mimes": "jsr:@geacko/mimes@^1.0.3",
