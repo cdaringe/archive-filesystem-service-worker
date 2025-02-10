@@ -1,0 +1,8 @@
+{
+  "imports": {
+    "@geacko/mimes": "jsr:@geacko/mimes@^1.0.3",
+    "@luca/esbuild-deno-loader": "jsr:@luca/esbuild-deno-loader@^0.11.1",
+    "@result/result": "jsr:@result/result@^1.1.0",
+    "@zeb/streaming-tar": "jsr:@zeb/streaming-tar@^0.1.1"
+  }
+}
