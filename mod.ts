@@ -1,69 +1,58 @@
-import * as tar from "@zeb/streaming-tar";
-import * as mimes from "@geacko/mimes";
-import { Result } from "@result/result";
-import { AsyncResult } from "./async_result.ts";
+import { entries as tarEntries } from "@zeb/streaming-tar";
+import { contentType } from "@std/media-types";
 
 export type FileByFilename = Map<string, Uint8Array>;
+type ReadlableStreamUint8Array = ReadableStream<Uint8Array>;
 
-type FileByFilenameResult = Result<FileByFilename, string>;
-
-type ReadlableStreamResult = Result<ReadableStream<Uint8Array>, string>;
-
-const uriToReadableStream = async (uri: string): Promise<ReadlableStreamResult> => {
-  const resp: Result<Response, string> = await fetch(uri).then(
-    (resp) => Result.ok(resp),
-    (err) => Result.err(String(err))
-  );
-  return resp.andThen((resp) => {
-    const body = resp.body;
-    if (!body) {
-      return Result.err("tarball has no body");
-    }
-    return Result.ok(body);
-  });
+const uriToReadableStream = async (
+  uri: string
+): Promise<ReadlableStreamUint8Array> => {
+  const resp = await fetch(uri);
+  const body = resp.body;
+  if (!body || !resp.ok) {
+    const msg = [
+      "Failed to stream tarball.",
+      uri,
+      `${resp.status} // ${resp.statusText}`,
+    ].join(" ");
+    throw new Error(msg);
+  }
+  return body;
 };
 
-export const tarballUriToToFileMap = async (tarUri: string): Promise<FileByFilenameResult> => {
-  const binaryStreamResult = await uriToReadableStream(tarUri);
-  return AsyncResult.fromPromiseResult(
-    binaryStreamResult.match(
-      async (stream) => {
-        const fileMap: FileByFilename = new Map();
-        try {
-          const tarStream = stream.pipeThrough(new DecompressionStream("gzip"));
-          for await (const entry of tar.entries(tarStream!)) {
-            // read the entry.body ReableStream<Uint8Array> to Uint8Array using
-            // standard web apis
-            const body = new Uint8Array(await new Response(entry.body).arrayBuffer());
-            fileMap.set(entry.name, body);
-          }
-        } catch (err) {
-          return Result.err(String(err));
-        }
-        return Result.ok(fileMap);
-      },
-      // deno-lint-ignore require-await
-      async (err) => Result.err(err)
-    )
-  );
+export const tarballUriToToFileMap = async (
+  tarUri: string
+): Promise<FileByFilename> => {
+  const stream = await uriToReadableStream(tarUri);
+  const fileMap: FileByFilename = new Map();
+  const tarStream = stream.pipeThrough(new DecompressionStream("gzip"));
+  for await (const entry of tarEntries(tarStream!)) {
+    const body = new Uint8Array(await new Response(entry.body).arrayBuffer());
+    fileMap.set(entry.name, body);
+  }
+  return fileMap;
 };
 
-export const getResponse = (filename: string, fileMap: FileByFilename): Result<null | Response, "unsupported"> => {
+export const getResponse = (
+  filename: string,
+  fileMap: FileByFilename
+): null | Response => {
   const ext = filename.split(".").pop();
-  const file = fileMap.get(filename);
+  const file =
+    fileMap.get(filename) ?? filename.startsWith("/")
+      ? fileMap.get(filename.substr(1))
+      : null;
   if (!file || !ext) {
-    return Result.ok(null);
+    return null;
   }
 
-  const mime = mimes.lookup(ext);
-  if (!mime) {
-    return Result.err("unsupported");
+  const resolvedContentType = contentType(`.${ext}`);
+  if (!resolvedContentType) {
+    return null;
   }
-  const { type: mimeType, isUtf8 } = mime;
-  const contentType = `${mimeType}${isUtf8 ? "; charset=UTF-8" : ""}`;
   const headers = {
-    "Content-Type": contentType,
+    "Content-Type": resolvedContentType,
     "Content-Length": file.byteLength.toString(),
   };
-  return Result.ok(new Response(file, { headers }));
+  return new Response(file, { headers });
 };

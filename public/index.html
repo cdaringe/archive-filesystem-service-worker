@@ -3,10 +3,29 @@
     <script src="https://unpkg.com/msw/lib/iife/index.js"></script>
     <script src="mockServiceWorker.js"></script>
     <script src="browser-demo.js"></script>
-    <script></script>
+    <script>
+      globalThis
+        .setupTarballInterceptorWorker(
+          "https://registry.npmjs.org/react/-/react-18.2.0.tgz"
+        )
+        .then("react worker loaded");
+      globalThis.serveFileFromServiceWorker = () =>
+        fetch("package/package.json")
+          .then((res) => res.json())
+          .then((data) => {
+            document.querySelector("pre").innerText = JSON.stringify(
+              data,
+              null,
+              2
+            );
+          });
+    </script>
   </head>
   <body>
     <h1>Worker demo</h1>
-    <button onclick="window.gonuts()">GO nuts</button>
+    <button onclick="window.serveFileFromServiceWorker()">
+      Load "package.json" from tarball filesystem interceptor
+    </button>
+    <pre></pre>
   </body>
 </html>

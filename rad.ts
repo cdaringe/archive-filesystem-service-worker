@@ -5,7 +5,7 @@ import type { Task, Tasks } from "https://deno.land/x/rad/src/mod.ts";
 const format: Task = "deno fmt";
 
 const bundle: Task = {
-  async fn({ sh }) {
+  async fn({ sh: _sh }) {
     // Import the Wasm build on platforms where running subprocesses is not
     // permitted, such as Deno Deploy, or when running without `--allow-run`.
     // import * as esbuild from "https://deno.land/x/esbuild@0.20.2/wasm.js";
@@ -24,18 +24,14 @@ const bundle: Task = {
 const serve: Task = {
   dependsOn: [bundle],
   async fn({ sh }) {
-    await sh(`deno run --allow-net --allow-read jsr:@maks0u/cli-serve --port 3000 ./public`);
+    await sh(
+      `deno run --allow-net --allow-read jsr:@std/http/file-server --port 3000 ./public`
+    );
   },
 };
 
 export const tasks: Tasks = {
-  bundle,
-  /**
-   * make-style tasks!
-   */
-  serve,
-  /**
-   * command style tasks
-   */
   ...{ format, f: format },
+  bundle,
+  serve,
 };
