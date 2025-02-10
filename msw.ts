@@ -3,15 +3,24 @@
  */
 import { getResponse, tarballUriToToFileMap } from "./mod.ts";
 
+/**
+ * A placeholder for the MSW module type
+ */
 interface IMSW {
   bypass: any;
   http: { all: any };
 }
 
+/**
+ * A placeholder for the MSW handler context type
+ */
 interface MSWHandlerCtx {
   request: Request;
 }
 
+/**
+ * A placeholder for the MSW handler interface
+ */
 // deno-lint-ignore no-empty-interface
 interface MSWHandler {}
 

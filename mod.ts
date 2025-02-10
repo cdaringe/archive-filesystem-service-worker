@@ -4,12 +4,14 @@
 import { entries as tarEntries } from "@zeb/streaming-tar";
 import { contentType } from "@std/media-types";
 
+/**
+ * e.g. `{ '/package.json: Uint8Array }`
+ */
 export type FileByFilename = Map<string, Uint8Array>;
-type ReadlableStreamUint8Array = ReadableStream<Uint8Array>;
 
 const uriToReadableStream = async (
   uri: string
-): Promise<ReadlableStreamUint8Array> => {
+): Promise<ReadableStream<Uint8Array>> => {
   const resp = await fetch(uri);
   const body = resp.body;
   if (!body || !resp.ok) {
@@ -23,6 +25,9 @@ const uriToReadableStream = async (
   return body;
 };
 
+/**
+ * Create a file map from a tarball URI.
+ */
 export const tarballUriToToFileMap = async (
   tarUri: string
 ): Promise<FileByFilename> => {
@@ -36,6 +41,10 @@ export const tarballUriToToFileMap = async (
   return fileMap;
 };
 
+/**
+ * Get a standard Response iff the filemap has the requested file in it,
+ * otherwise null.
+ */
 export const getResponse = (
   filename: string,
   fileMap: FileByFilename
