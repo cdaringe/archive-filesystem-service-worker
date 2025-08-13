@@ -16,5 +16,5 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: deno publish
