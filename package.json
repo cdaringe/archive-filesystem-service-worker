@@ -1,4 +1,4 @@
 {
-  "devDependencies": { "esbuild": "0.25.0" },
-  "dependencies": { "esbuild": "^0.25.0" }
+  "devDependencies": { "esbuild": "0.28.2" },
+  "dependencies": { "esbuild": "^0.28.0" }
 }
